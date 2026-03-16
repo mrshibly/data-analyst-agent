@@ -99,13 +99,13 @@ ANALYSIS_TOOLS = [
         "type": "function",
         "function": {
             "name": "create_chart",
-            "description": "Generate a chart/visualization. Supported types: line, bar, histogram, scatter, heatmap.",
+            "description": "Generate a chart/visualization. Supported types: line, bar, histogram, scatter, heatmap, box.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "chart_type": {
                         "type": "string",
-                        "enum": ["line", "bar", "histogram", "scatter", "heatmap"],
+                        "enum": ["line", "bar", "histogram", "scatter", "heatmap", "box"],
                         "description": "Type of chart to create.",
                     },
                     "title": {

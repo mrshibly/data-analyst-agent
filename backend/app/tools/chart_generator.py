@@ -161,3 +161,25 @@ def generate_correlation_heatmap(
 
     logger.info(f"Generated correlation heatmap: {chart_name}")
     return f"/api/v1/files/{file_id}/charts/{chart_name}"
+def generate_box_plot(
+    df: pd.DataFrame,
+    y: str,
+    title: str,
+    file_id: str,
+    chart_name: str,
+    x: str | None = None,
+) -> str:
+    """Generate a box plot and save it as PNG."""
+    fig, ax = plt.subplots()
+    sns.boxplot(data=df, x=x, y=y, ax=ax, palette="viridis")
+    ax.set_title(title)
+    if x: ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    plt.tight_layout()
+
+    chart_path = get_chart_path(file_id, chart_name)
+    fig.savefig(chart_path, bbox_inches="tight")
+    plt.close(fig)
+
+    logger.info(f"Generated box plot: {chart_name}")
+    return f"/api/v1/files/{file_id}/charts/{chart_name}"

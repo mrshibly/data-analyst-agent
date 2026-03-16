@@ -11,6 +11,7 @@ from app.tools.chart_generator import (
     generate_histogram,
     generate_scatter_plot,
     generate_correlation_heatmap,
+    generate_box_plot,
 )
 from app.tools.plotly_generator import generate_interactive_chart
 
@@ -62,6 +63,8 @@ def create_chart(
             url = generate_scatter_plot(df, x, y, title, file_id, chart_name)
         elif chart_type == "heatmap":
             url = generate_correlation_heatmap(df, title, file_id, chart_name)
+        elif chart_type == "box":
+            url = generate_box_plot(df, y or column, title, file_id, chart_name, x=x)
         else:
             raise ValueError(f"Unsupported chart type: {chart_type}")
 
