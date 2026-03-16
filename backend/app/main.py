@@ -50,11 +50,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import os
 
-# Create static directory if it doesn't exist for build
-# Determine the absolute path to the backend/app directory
+# Resolve frontend dist directory relative to this file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Frontend dist is one level up from app/, in the frontend/ directory
-frontend_dist = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "frontend", "dist"))
+# Possible locations:
+# 1. ../frontend/dist (Container structure)
+# 2. ../../frontend/dist (Local dev structure)
+frontend_dist = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
+if not os.path.exists(frontend_dist):
+    frontend_dist = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "frontend", "dist"))
 
 if os.path.exists(frontend_dist):
     app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
