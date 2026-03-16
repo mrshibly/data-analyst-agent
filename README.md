@@ -1,3 +1,14 @@
+---
+title: Lumina Analyst
+emoji: 💎
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+pinned: false
+app_port: 7860
+base_path: /
+---
+
 # 💎 Lumina Analyst
 
 **Lumina Analyst** is a high-performance, autonomous AI data agent designed for deep analytical reasoning. Upload complex datasets, ask high-level questions, and receive real-time streaming insights with advanced visualizations — powered by LLMs and a high-resiliency analytical core.
