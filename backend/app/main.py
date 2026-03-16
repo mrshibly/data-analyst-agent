@@ -59,37 +59,50 @@ frontend_dist = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist")
 if not os.path.exists(frontend_dist):
     frontend_dist = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "frontend", "dist"))
 
+logger.info(f"Frontend dist path: {frontend_dist}")
 if os.path.exists(frontend_dist):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+    logger.info("Found frontend dist, mounting static files...")
+    # Mount assets directory
+    assets_dir = os.path.join(frontend_dist, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+        logger.info(f"Mounted /assets from {assets_dir}")
     
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):
+        logger.debug(f"Incoming request: {request.method} {request.url.path}")
+        response = await call_next(request)
+        if response.status_code >= 400:
+            logger.error(f"Request failed: {request.method} {request.url.path} -> {response.status_code}")
+        return response
+
     @app.get("/{full_path:path}")
     async def serve_spa(request: Request, full_path: str):
-        # If the path starts with api/, ignore it so the router can handle it
+        # Ignore API calls
         if full_path.startswith("api/"):
-            # This shouldn't happen if prefixes match, but if it does, 
-            # let's return a proper error or fallback
             return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
             
-
-        # Check if it's a file that exists
+        # Check if the requested path is a real file in dist/
         file_path = os.path.join(frontend_dist, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
 
-        # Otherwise, serve index.html for client-side routing
-        return FileResponse(os.path.join(frontend_dist, "index.html"))
+        # Fallback to index.html for SPA routing
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        
+        return JSONResponse(status_code=404, content={"detail": "Frontend index not found"})
 else:
+    logger.warning("Frontend dist directory NOT FOUND. Dashboard will not be served.")
     @app.get("/")
     async def root():
         return {"message": "Data Analyst Agent API is running. Frontend not found/built."}
-
 
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch unhandled exceptions and return a clean JSON error response."""
-    from fastapi import HTTPException
-    
     status_code = 500
     detail = str(exc)
     
