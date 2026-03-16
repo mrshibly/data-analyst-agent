@@ -1,8 +1,9 @@
 import type { ChartInfo } from '../types';
 import { getChartUrl } from '../services/api';
-import Plotly from 'plotly.js-dist-min';
 import createPlotlyComponent from 'react-plotly.js/factory';
 
+// Use Plotly from the global window object (loaded via CDN)
+const Plotly = (window as any).Plotly;
 const Plot = createPlotlyComponent(Plotly);
 
 interface ChartViewerProps {
