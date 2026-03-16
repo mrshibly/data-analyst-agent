@@ -1,6 +1,14 @@
 import type { ChatMessage } from '../types';
 
-const API_BASE = 'http://127.0.0.1:8000/api/v1';
+// detect if we are in development or production
+const isDev = import.meta.env.DEV;
+const API_BASE = isDev ? 'http://127.0.0.1:8000/api/v1' : '/api/v1';
+
+export function getChartUrl(path: string) {
+  if (path.startsWith('http')) return path;
+  if (isDev) return `http://127.0.0.1:8000${path}`;
+  return path;
+}
 
 export async function uploadFile(file: File) {
   const formData = new FormData();
