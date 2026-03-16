@@ -1,0 +1,11 @@
+Order Date,Region,Product,Category,Units Sold,Unit Price,Total Revenue
+2023-01-15,North America,Laptop,Electronics,5,1200,6000
+2023-01-20,Europe,Smartphone,Electronics,10,800,8000
+2023-02-05,Asia,Desk Chair,Furniture,15,150,2250
+2023-02-12,North America,Monitor,Electronics,8,300,2400
+2023-03-01,Europe,Coffee Maker,Appliances,12,100,1200
+2023-03-10,Asia,Headphones,Electronics,20,150,3000
+2023-03-15,North America,Office Desk,Furniture,3,450,1350
+2023-04-02,Europe,Tablet,Electronics,7,500,3500
+2023-04-10,Asia,Smartwatch,Electronics,25,200,5000
+2023-05-05,North America,Printer,Electronics,4,250,1000
