@@ -94,7 +94,3 @@ export async function analyzeQueryStream(
   });
 }
 
-export function getChartUrl(path: string) {
-  if (path.startsWith('http')) return path;
-  return `http://127.0.0.1:8000${path}`;
-}
