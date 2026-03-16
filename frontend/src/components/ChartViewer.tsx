@@ -1,13 +1,36 @@
+import { useEffect, useRef } from 'react';
 import type { ChartInfo } from '../types';
 import { getChartUrl } from '../services/api';
-import createPlotlyComponent from 'react-plotly.js/factory';
-
-// Use Plotly from the global window object (loaded via CDN)
-const Plotly = (window as any).Plotly;
-const Plot = createPlotlyComponent(Plotly);
 
 interface ChartViewerProps {
   charts: ChartInfo[];
+}
+
+/**
+ * A native, zero-dependency Plotly component that uses the CDN-loaded library.
+ */
+function Plot({ data, layout, config }: any) {
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const Plotly = (window as any).Plotly;
+    if (chartRef.current && Plotly) {
+      // Create the plot
+      Plotly.newPlot(chartRef.current, data, layout, config);
+      
+      // Handle responsiveness
+      const handleResize = () => {
+        if (chartRef.current && Plotly) {
+          Plotly.Plots.resize(chartRef.current);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [data, layout, config]);
+
+  return <div ref={chartRef} style={{ width: '100%', borderRadius: 'inherit' }} />;
 }
 
 export default function ChartViewer({ charts }: ChartViewerProps) {
@@ -31,7 +54,6 @@ export default function ChartViewer({ charts }: ChartViewerProps) {
                   height: 350,
                 }}
                 config={{ responsive: true, displayModeBar: false }}
-                style={{ width: '100%' }}
               />
             ) : (
               chart.url && (
