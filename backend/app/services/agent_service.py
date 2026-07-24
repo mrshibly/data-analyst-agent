@@ -131,9 +131,52 @@ def _execute_tool(
 
 
         elif tool_name == "run_python_code":
-            return execute_python_code(
+            import uuid
+            from pathlib import Path
+            from app.core.config import settings
+            chart_filename = f"chart_{file_id}_{uuid.uuid4().hex[:8]}.png"
+            chart_path = str(Path(settings.chart_dir) / chart_filename)
+            res = execute_python_code(
                 code=tool_args["code"],
                 df=df,
+                chart_save_path=chart_path,
+            )
+            if res.get("chart_saved"):
+                res["chart_url"] = f"/charts/{chart_filename}"
+            return res
+
+        elif tool_name == "fill_missing_values":
+            from app.tools.cleaner import fill_missing_values
+            _, info = fill_missing_values(
+                df,
+                strategy=tool_args.get("strategy", "mean"),
+                columns=tool_args.get("columns")
+            )
+            return {"status": "success", "imputation_summary": info}
+
+        elif tool_name == "create_calculated_column":
+            from app.tools.cleaner import create_calculated_column
+            _, info = create_calculated_column(
+                df,
+                new_column_name=tool_args["new_column_name"],
+                formula_expr=tool_args["formula_expr"]
+            )
+            return info
+
+        elif tool_name == "run_regression_model":
+            from app.tools.predictive import run_regression_model
+            return run_regression_model(
+                df,
+                feature_cols=tool_args["feature_cols"],
+                target_col=tool_args["target_col"]
+            )
+
+        elif tool_name == "detect_anomalies":
+            from app.tools.predictive import detect_anomalies
+            return detect_anomalies(
+                df,
+                numeric_cols=tool_args.get("numeric_cols"),
+                top_n=tool_args.get("top_n", 5)
             )
 
         else:
@@ -232,12 +275,13 @@ async def run_analysis_stream(
             tool_names_used.append(tool_name)
             tool_results.append({"tool": tool_name, "args": tool_args, "result": result})
 
-            # Track charts (standard)
-            if tool_name == "create_chart" and "url" in result:
+            # Track charts (standard & python executor)
+            if "url" in result or "chart_url" in result:
+                chart_url = result.get("url") or result.get("chart_url")
                 chart = ChartInfo(
-                    title=result.get("title", "Chart"),
-                    url=result["url"],
-                    chart_type=result.get("chart_type", ""),
+                    title=tool_args.get("title", "Chart Visualization"),
+                    url=chart_url,
+                    chart_type=result.get("chart_type", "bar"),
                 )
                 charts.append(chart)
                 yield {"event": "chart", "data": chart.model_dump()}
@@ -323,58 +367,67 @@ async def run_analysis(file_id: str, query: str, chat_history: list[dict] | None
 import re
 
 def _parse_explanation(explanation: str) -> tuple[str, list[str]]:
-    """Parse the LLM explanation using robust regex to handle bolding and whitespace."""
+    """Parse LLM explanation into summary and insights list across JSON or Markdown formats."""
+    if not explanation or not explanation.strip():
+        return "Analysis completed successfully.", []
+
+    text = explanation.strip()
+
+    # Case 1: JSON response string
+    if text.startswith("{") and text.endswith("}"):
+        try:
+            data = json.loads(text)
+            summary = str(data.get("summary", ""))
+            insights_raw = data.get("insights", [])
+            insights = [str(i) for i in insights_raw] if isinstance(insights_raw, list) else []
+            if summary:
+                return summary, insights
+        except Exception:
+            pass
+
+    # Case 2: Markdown headers / Bolding patterns
+    # Normalize headers like '## Summary', '**Summary:**', 'Summary:'
     summary = ""
     insights = []
-    
-    # Normalize markdown bolding and common patterns for robust splitting
-    # Matches 'Summary:', '**Summary:**', '### Summary', etc.
-    summary_pattern = re.compile(r"(?i)(?:\**\s*Summary\s*:?\s*\**)")
-    insights_pattern = re.compile(r"(?i)(?:\**\s*Insights\s*:?\s*\**)")
-    
-    # Find positions
-    s_match = summary_pattern.search(explanation)
-    i_match = insights_pattern.search(explanation)
-    
-    if i_match:
-        # We have an insights header
-        i_pos = i_match.start()
-        
-        # Extract summary text
-        if s_match and s_match.start() < i_pos:
-            summary_text = explanation[s_match.end():i_pos].strip()
-        else:
-            summary_text = explanation[:i_pos].strip()
-            
-        summary = summary_text
-        
-        # Extract insights from after the header
-        insights_text = explanation[i_match.end():].strip()
-        for line in insights_text.split("\n"):
+
+    header_split = re.split(r"(?i)\n(?=#+\s*Insights|\**\s*Insights\s*:?)", text)
+    if len(header_split) >= 2:
+        raw_summary = header_split[0]
+        raw_insights = header_split[1]
+
+        # Clean summary header
+        summary = re.sub(r"(?i)^(#+\s*Summary\s*|\**\s*Summary\s*:?\s*\**)", "", raw_summary).strip()
+
+        # Parse insights lines
+        for line in raw_insights.split("\n"):
             line = line.strip()
-            if not line: continue
-            # Handle list markers
-            if line.startswith(("- ", "• ", "* ", "– ")) or (line[:1].isdigit() and "." in line[:3]):
-                insight = line.lstrip("-•*– 1234567890. ").strip()
-                if insight: insights.append(insight)
-    else:
-        # Fallback: Treat start as summary, look for bullets anywhere
-        lines = explanation.strip().split("\n")
-        summary_parts = []
-        in_insights = False
+            if not line:
+                continue
+            if re.match(r"^(?:#+\s*Insights|\**\s*Insights\s*:?\s*\**)", line, re.IGNORECASE):
+                continue
+            if line.startswith(("- ", "• ", "* ", "– ")) or re.match(r"^\d+[\.\)]\s+", line):
+                cleaned = re.sub(r"^(?:-|\•|\*|–|\d+[\.\)])\s*", "", line).strip()
+                cleaned = re.sub(r"^\*\*|\*\*", "", cleaned).strip()
+                if cleaned:
+                    insights.append(cleaned)
+        return summary or raw_summary[:300], insights
 
-        for line in lines:
-            stripped = line.strip()
-            if not stripped: continue
-            if stripped.startswith(("- ", "• ", "* ", "– ")) or (stripped[:1].isdigit() and "." in stripped[:3]):
-                in_insights = True
-                insight = stripped.lstrip("-•*– 1234567890. ").strip()
-                if insight: insights.append(insight)
-            elif not in_insights:
-                # Clean header if it leaked in
-                clean_line = summary_pattern.sub("", stripped).strip()
-                if clean_line: summary_parts.append(clean_line)
-        
-        summary = " ".join(summary_parts) if summary_parts else explanation[:500]
+    # Fallback: Line-by-line parsing
+    summary_lines = []
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith(("- ", "• ", "* ", "– ")) or re.match(r"^\d+[\.\)]\s+", stripped):
+            cleaned = re.sub(r"^(?:-|\•|\*|–|\d+[\.\)])\s*", "", stripped).strip()
+            cleaned = re.sub(r"^\*\*|\*\*", "", cleaned).strip()
+            if cleaned:
+                insights.append(cleaned)
+        else:
+            cleaned = re.sub(r"(?i)^(#+\s*Summary\s*|\**\s*Summary\s*:?\s*\**)", "", stripped).strip()
+            if cleaned and not re.match(r"(?i)^#+\s*Insights", cleaned):
+                summary_lines.append(cleaned)
 
+    summary = " ".join(summary_lines) if summary_lines else text[:500]
     return summary, insights
+

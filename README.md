@@ -5,57 +5,57 @@ colorFrom: indigo
 colorTo: purple
 sdk: docker
 pinned: false
-app_port: 7860
+app_port: 8000
 base_path: /
 ---
 
 # 💎 Lumina Analyst
 
-**Lumina Analyst** is a high-performance, autonomous AI data agent designed for deep analytical reasoning. Upload complex datasets, ask high-level questions, and receive real-time streaming insights with advanced visualizations — powered by LLMs and a high-resiliency analytical core.
+**Lumina Analyst** is a high-performance, autonomous AI data analyst agent designed for deep analytical reasoning, predictive modeling, data cleaning, and executive reporting. Upload complex datasets (CSV/Excel), ask natural language questions, and receive real-time streaming insights with interactive visualizations.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.9-F7931E?logo=scikitlearn)
+![Plotly](https://img.shields.io/badge/Plotly-6.0-3F4F75?logo=plotly)
 
 ---
-<img width="1904" height="943" alt="image" src="https://github.com/user-attachments/assets/4f97272a-c151-4628-a9ab-2020bbf2a56d" />
 
 ## ✨ Features
 
-- **⚡ Real-Time Streaming Analysis** — Watch the agent's reasoning-step-by-step
-- **🛡️ High-Resiliency Context** — Smart schema compression for strict LLM rate limits
-- **🔍 Natural Language Intelligence** — Ask complex questions in plain English
-- **📊 Interactive Visualizations** — Dynamic Plotly charts (Histogram, Box, Pie, etc.)
-- **📈 Intelligence Synthesis** — Automated executive summaries and numeric insights
-- **🐍 Safe Code Execution** — Secure environment for advanced pandas operations
-- **🎨 Obsidian Design System** — A stunning, modern dark UI for premium analytical experiences
+- **💬 Chat-First Analytical UI** — Multi-turn conversation timeline with real-time reasoning steps & suggestion pills.
+- **📊 Interactive Chart Studio** — Dynamic Plotly graphics with instant type switching (Bar, Line, Scatter, Pie, Box), high-res PNG export, and fullscreen mode.
+- **📄 One-Click Executive PDF Exporter** — Instant executive report generation with KPI summary cards, structured insights, and browser print-to-PDF.
+- **🤖 Predictive Machine Learning Engine** — Train Scikit-Learn linear regression models ($R^2$ fit scores, feature weights) and execute Isolation Forest anomaly/outlier detection.
+- **🧹 AI Data Cleaning & Transformation** — Perform missing value imputation (mean, median, mode, forward-fill) and formula-calculated column engineering (`goals_per_match = goals / matches`).
+- **🛡️ Multi-Model Rate Limit Resilience** — Multi-tiered automatic fallback system (`llama-3.1-8b-instant` ➔ `mixtral-8x7b-32768` ➔ `llama-3.3-70b-versatile`) to bypass strict free tier token quotas without downtime.
+- **📂 Slide-Over Data Drawer** — Slide-over drawer for dataset preview, column schema inspection, and data type summaries.
+- **🐍 Safe Python Code Sandbox** — AST-sandboxed code execution environment for custom pandas & numpy computations.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Frontend (React + Vite)
-        ↓ HTTP
-FastAPI Backend
+User (Browser Chat UI)
+        ↓ HTTP / SSE
+FastAPI Backend (Port 8000)
         ↓
 Agent Orchestrator
         ↓
-LLM (Groq / OpenAI) ← Function Calling
+LLM Engine (Groq / OpenAI) ← Automatic Rate-Limit Failover
         ↓
-Tool Router
-     ↙    ↓    ↘
- File   Python   Chart
-Loader  Executor Generator
-     ↘    ↓    ↙
-Results Collected
+Tool Router & Function Calling
+   ┌────┼──────────────┬──────────────┬────────────────┐
+  File  Python       Plotly       Data Cleaning     Predictive ML
+Loader  Executor    Generator      & Imputation      (Regression &
+                                                    Isolation Forest)
+   └────┴──────────────┴──────────────┴────────────────┘
         ↓
-LLM Explanation
+Results & Interactive Payload Synthesis
         ↓
-Structured JSON Response
-        ↓
-Frontend Display
+Frontend Render (Plotly + Markdown + KPI Cards + PDF Export)
 ```
 
 ---
@@ -64,52 +64,53 @@ Frontend Display
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | FastAPI, Python 3.11+, Pydantic v2, Uvicorn |
-| **AI/LLM** | Groq API, OpenAI API (function calling) |
-| **Analysis** | pandas, numpy, matplotlib, seaborn |
-| **Frontend** | React 19, Vite, TypeScript |
-| **Testing** | pytest, httpx |
+| **Backend** | FastAPI, Python 3.12+, Pydantic v2, Uvicorn |
+| **AI / LLM** | Groq API, OpenAI API, Multi-Model Failover Router |
+| **Machine Learning** | Scikit-Learn (LinearRegression, IsolationForest), pandas, numpy |
+| **Visualizations** | Plotly, Matplotlib, Seaborn |
+| **Frontend** | React 19, TypeScript, TailwindCSS, Lucide Icons |
+| **Testing** | Pytest, HTTPX |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-data-analyst-agent/
+Lumina Analyst/
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/endpoints/    # Route handlers
-│   │   ├── core/                # Config, logging, exceptions
-│   │   ├── schemas/             # Pydantic models
-│   │   ├── services/            # Business logic & agent
-│   │   ├── tools/               # File loader, Python executor, chart gen
-│   │   ├── utils/               # Helpers
-│   │   └── main.py              # FastAPI app entry point
-│   ├── tests/                   # pytest test suite
+│   │   ├── api/v1/endpoints/    # REST & streaming route handlers
+│   │   ├── core/                # Config, logging, SQLite database registry
+│   │   ├── schemas/             # Pydantic data contracts
+│   │   ├── services/            # Agent service, LLM service, chart service
+│   │   ├── tools/               # File loader, executor, Plotly, cleaner, predictive ML
+│   │   └── main.py              # FastAPI application server
+│   ├── tests/                   # 17 Unit test suites (test_advanced_tools, test_analysis, etc.)
 │   ├── requirements.txt
-│   └── .env.example
+│   └── .env
 ├── frontend/
 │   ├── src/
-│   │   ├── components/          # React UI components
-│   │   ├── services/            # API client
+│   │   ├── components/          # Interactive UI components (ChartViewer, DataDrawer, QueryInput)
+│   │   ├── services/            # Axios API client
 │   │   ├── types/               # TypeScript interfaces
-│   │   ├── App.tsx              # Main app
-│   │   └── index.css            # Design system
+│   │   ├── App.tsx              # Chat workspace & Executive Report exporter
+│   │   └── index.css            # Dark mode styles & custom scrollbars
+│   ├── dist/                    # Compiled production build
 │   └── package.json
 └── README.md
 ```
 
 ---
 
-## 🚀 Setup
+## 🚀 Quickstart
 
 ### Prerequisites
 
 - Python 3.11+
 - Node.js 18+
-- A Groq or OpenAI API key
+- A Groq API key (or OpenAI API key)
 
-### Backend
+### 1. Backend Setup
 
 ```bash
 cd backend
@@ -122,15 +123,15 @@ venv\Scripts\activate        # Windows
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-copy .env.example .env
-# Edit .env and add your GROQ_API_KEY or OPENAI_API_KEY
+# Configure environment in .env
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=llama-3.1-8b-instant
 
-# Start the server
-uvicorn app.main:app --reload --port 8000
+# Start FastAPI server
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-### Frontend
+### 2. Frontend Setup
 
 ```bash
 cd frontend
@@ -138,119 +139,51 @@ cd frontend
 # Install dependencies
 npm install
 
-# Start dev server
-npm run dev
+# Build static bundle for FastAPI static mounting
+npm run build
 ```
 
-Open **http://localhost:5173** in your browser.
+Open **http://127.0.0.1:8000** in your browser!
 
 ---
 
-## 🔑 Environment Variables
+## 🔑 Environment Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `LLM_PROVIDER` | `groq` or `openai` | `groq` |
 | `GROQ_API_KEY` | Groq API key | — |
+| `GROQ_MODEL` | Primary Groq model | `llama-3.1-8b-instant` |
 | `OPENAI_API_KEY` | OpenAI API key | — |
-| `GROQ_MODEL` | Groq model name | `llama-3.3-70b-versatile` |
-| `OPENAI_MODEL` | OpenAI model name | `gpt-4o-mini` |
-| `UPLOAD_DIR` | Upload storage path | `./uploads` |
-| `CHART_DIR` | Chart storage path | `./charts` |
-| `FRONTEND_URL` | CORS origin | `http://localhost:5173` |
+| `OPENAI_MODEL` | OpenAI model | `gpt-4o-mini` |
+| `UPLOAD_DIR` | Upload dataset path | `./uploads` |
+| `CHART_DIR` | Matplotlib chart path | `./charts` |
 
 ---
 
-## 📡 API Endpoints
+## 💬 Example Analytical Queries
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check |
-| `POST` | `/api/v1/upload` | Upload dataset (CSV/Excel) |
-| `GET` | `/api/v1/files/{id}/preview` | Preview dataset rows & schema |
-| `POST` | `/api/v1/analyze` | Run AI analysis on dataset |
-| `GET` | `/api/v1/files/{id}/charts/{name}` | Serve chart image |
-
-### Example API Flow
-
-```bash
-# 1. Upload a CSV
-curl -X POST http://localhost:8000/api/v1/upload \
-  -F "file=@sales_data.csv"
-
-# Response: { "file_id": "a1b2c3d4e5f6g7h8", ... }
-
-# 2. Ask a question
-curl -X POST http://localhost:8000/api/v1/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"file_id": "a1b2c3d4e5f6g7h8", "query": "Show revenue trends by month"}'
-```
-
-### Example Response
-
-```json
-{
-  "summary": "Revenue shows a consistent upward trend over the past 6 months...",
-  "insights": [
-    "Revenue grew by 18% month-over-month on average",
-    "June had the highest total revenue at $142,000",
-    "The Electronics category was the top performer"
-  ],
-  "statistics": {
-    "row_count": 1200,
-    "column_count": 8,
-    "numeric_columns": ["revenue", "profit", "units_sold"]
-  },
-  "charts": [
-    {
-      "title": "Monthly Revenue Trend",
-      "url": "/api/v1/files/a1b2c3d4/charts/monthly_revenue_trend",
-      "chart_type": "line"
-    }
-  ],
-  "tool_calls": ["group_and_aggregate", "create_chart", "compute_statistics"]
-}
-```
+- **Basic Analysis**: *"Who are the top 5 goalscorers across all leagues? Create a bar chart."*
+- **Predictive ML**: *"Train a regression model predicting market value from rating and goals."*
+- **Anomaly Detection**: *"Detect outliers in ratings and market value using Isolation Forest."*
+- **Data Cleaning**: *"Fill missing values in the goals column with mean imputation."*
+- **Feature Engineering**: *"Create a calculated column goals_per_match = goals / matches_played."*
 
 ---
 
-## 💬 Example Queries
+## 🧪 Running Unit Tests
 
-- *"Analyze this CSV and summarize the key trends"*
-- *"Show revenue by month"*
-- *"Find correlations between profit and marketing spend"*
-- *"Create a histogram for customer age"*
-- *"Which product category performs best?"*
-- *"Show summary statistics"*
-- *"Analyze null values in the dataset"*
-- *"Create a scatter plot of price vs quantity"*
-
----
-
-## 🧪 Running Tests
+Run the backend test suite:
 
 ```bash
 cd backend
-python -m pytest tests/ -v
+.\venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
----
-
-## 🔮 Future Improvements
-
-- [ ] Session history & conversation memory
-- [ ] Multiple file support (joins, comparisons)
-- [ ] Downloadable reports (PDF export)
-- [ ] WebSocket streaming for real-time analysis progress
-- [ ] Docker containerization
-- [ ] Database-backed file registry (PostgreSQL)
-- [ ] Authentication & user management
-- [ ] More chart types (pie, treemap, box plot)
-- [ ] Natural language data filtering
-- [ ] Automated data cleaning suggestions
+All 17 pytest suites test upload handlers, sandbox security, data cleaning, regression modeling, and anomaly detection.
 
 ---
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

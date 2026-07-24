@@ -1,5 +1,6 @@
 """Python Execution Tool — sandboxed pandas/numpy/matplotlib execution."""
 
+import ast
 import io
 import sys
 import traceback
@@ -47,6 +48,35 @@ SAFE_BUILTINS = {
     "type": type,
     "zip": zip,
 }
+
+FORBIDDEN_ATTRIBUTES = {
+    "__class__", "__bases__", "__subclasses__", "__mro__", "__globals__",
+    "__builtins__", "__import__", "__code__", "__closure__", "__func__"
+}
+
+FORBIDDEN_CALLS = {"eval", "exec", "open", "compile", "getattr", "setattr", "delattr", "__import__"}
+
+
+def validate_code_ast(code: str) -> None:
+    """Statically analyze Python AST to prevent malicious sandbox escape attempts."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        raise ValueError(f"Syntax error in Python code: {e}") from e
+
+    for node in ast.walk(tree):
+        # Block imports
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            raise PermissionError("Module imports are disabled in the Python sandbox.")
+
+        # Block forbidden attribute access (e.g. obj.__class__)
+        if isinstance(node, ast.Attribute) and node.attr in FORBIDDEN_ATTRIBUTES:
+            raise PermissionError(f"Access to property '{node.attr}' is restricted for security.")
+
+        # Block forbidden global calls
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in FORBIDDEN_CALLS:
+                raise PermissionError(f"Call to '{node.func.id}()' is prohibited in the sandbox.")
 
 
 def execute_python_code(
@@ -98,6 +128,9 @@ def execute_python_code(
     }
 
     try:
+        # Perform AST static safety inspection before executing
+        validate_code_ast(code)
+
         with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
             exec(code, sandbox_globals)  # noqa: S102
 

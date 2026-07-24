@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from app.api.v1.router import v1_router
 from app.core.config import settings
 from app.core.logging_config import setup_logging, get_logger
+from app.core.database import init_db
 
 logger = get_logger(__name__)
 
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown events."""
     setup_logging(level="DEBUG" if settings.debug else "INFO")
     settings.ensure_directories()
+    init_db()
     logger.info("Data Analyst Agent started")
     logger.info(f"LLM Provider: {settings.llm_provider}")
     logger.info(f"Upload dir: {settings.upload_dir}")
@@ -34,10 +36,11 @@ app = FastAPI(
 )
 
 # CORS configuration
+allowed_origins = [settings.frontend_url, "http://localhost:5173", "http://127.0.0.1:5173"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

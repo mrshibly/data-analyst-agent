@@ -3,7 +3,7 @@
 
 def test_health_check(client):
     """Health endpoint should return 200 with expected body."""
-    response = client.get("/health")
+    response = client.get("/api/v1/health")
     assert response.status_code == 200
 
     data = response.json()

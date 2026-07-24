@@ -1,0 +1,31 @@
+player_name,team,league,position,matches_played,goals,assists,shots_on_target,pass_accuracy_pct,tackles_won,rating,market_value_eur_m
+Erling Haaland,Manchester City,Premier League,Forward,31,27,5,68,78.5,8,7.95,180
+Mohamed Salah,Liverpool,Premier League,Forward,32,18,10,54,81.2,14,7.82,65
+Bukayo Saka,Arsenal,Premier League,Forward,35,16,9,48,83.7,28,7.74,130
+Kevin De Bruyne,Manchester City,Premier League,Midfielder,24,4,12,28,88.9,22,7.88,50
+Vinicius Jr,Real Madrid,La Liga,Forward,26,15,6,42,82.1,16,7.91,150
+Kylian Mbappe,Real Madrid,La Liga,Forward,29,27,7,74,84.0,10,8.15,180
+Jude Bellingham,Real Madrid,La Liga,Midfielder,28,19,6,45,89.3,34,8.05,180
+Harry Kane,Bayern Munich,Bundesliga,Forward,32,36,8,82,79.8,12,8.22,100
+Cole Palmer,Chelsea,Premier League,Midfielder,33,22,11,58,84.6,20,7.89,90
+Phil Foden,Manchester City,Premier League,Midfielder,35,19,8,52,88.4,24,7.92,130
+Declan Rice,Arsenal,Premier League,Midfielder,37,7,8,22,91.2,68,7.65,120
+Rodri,Manchester City,Premier League,Midfielder,34,8,9,26,92.5,74,8.10,130
+Bruno Fernandes,Manchester United,Premier League,Midfielder,35,10,8,38,79.4,42,7.48,70
+Son Heung-min,Tottenham,Premier League,Forward,34,17,10,46,82.8,18,7.62,45
+Ollie Watkins,Aston Villa,Premier League,Forward,37,19,13,56,76.9,15,7.70,65
+Florian Wirtz,Bayer Leverkusen,Bundesliga,Midfielder,32,11,11,39,87.6,26,7.98,130
+Lamine Yamal,Barcelona,La Liga,Forward,37,5,6,34,81.9,19,7.55,120
+Lautaro Martinez,Inter Milan,Serie A,Forward,33,24,3,62,77.4,14,7.86,110
+Robert Lewandowski,Barcelona,La Liga,Forward,35,19,8,58,78.9,9,7.45,15
+Antoine Griezmann,Atletico Madrid,La Liga,Forward,33,16,6,44,84.2,31,7.78,25
+Victor Osimhen,Napoli,Serie A,Forward,25,15,3,41,74.2,11,7.40,75
+Martin Odegaard,Arsenal,Premier League,Midfielder,35,8,10,32,88.7,29,7.76,110
+Jamal Musiala,Bayern Munich,Bundesliga,Midfielder,24,10,6,33,86.5,21,7.80,130
+Rafael Leao,AC Milan,Serie A,Forward,34,9,9,37,80.1,17,7.42,90
+Federico Valverde,Real Madrid,La Liga,Midfielder,37,2,7,29,90.1,52,7.68,120
+Alexis Mac Allister,Liverpool,Premier League,Midfielder,33,5,5,24,87.9,58,7.52,75
+Alexander Isak,Newcastle,Premier League,Forward,30,21,2,51,77.8,8,7.64,75
+Julian Alvarez,Atletico Madrid,La Liga,Forward,36,11,9,43,83.1,22,7.50,90
+Virgil van Dijk,Liverpool,Premier League,Defender,36,2,2,14,91.4,48,7.58,30
+William Saliba,Arsenal,Premier League,Defender,38,2,1,8,92.8,44,7.60,80

@@ -17,34 +17,15 @@ from app.utils.file_utils import (
 
 logger = get_logger(__name__)
 
-import json
-import os
+from app.core.database import (
+    db_register_file,
+    db_get_file,
+    db_list_files,
+    init_db,
+)
 
-# Registry file path
-REGISTRY_FILE = Path(settings.upload_dir) / "registry.json"
-
-def _load_registry() -> dict:
-    """Load the file registry from disk."""
-    if not REGISTRY_FILE.exists():
-        return {}
-    try:
-        with open(REGISTRY_FILE, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        logger.error(f"Failed to load registry: {e}")
-        return {}
-
-def _save_registry(registry: dict):
-    """Save the file registry to disk."""
-    try:
-        os.makedirs(settings.upload_dir, exist_ok=True)
-        with open(REGISTRY_FILE, "w") as f:
-            json.dump(registry, f, indent=2)
-    except Exception as e:
-        logger.error(f"Failed to save registry: {e}")
-
-# Load registry on module import
-_file_registry: dict[str, dict] = _load_registry()
+# Ensure database table exists on module load
+init_db()
 
 
 async def save_uploaded_file(filename: str, content: bytes) -> dict:
@@ -94,15 +75,14 @@ async def save_uploaded_file(filename: str, content: bytes) -> dict:
     metadata = inspect_dataset(df)
     preview = preview_rows(df, n=5)
 
-    # Register file
-    _file_registry[file_id] = {
-        "file_id": file_id,
-        "filename": filename,
-        "file_path": str(file_path),
-        "file_size": len(content),
-        **metadata,
-    }
-    _save_registry(_file_registry)
+    # Register file in SQLite database
+    db_register_file(
+        file_id=file_id,
+        filename=filename,
+        file_path=str(file_path),
+        file_size=len(content),
+        metadata=metadata,
+    )
 
     return {
         "file_id": file_id,
@@ -117,18 +97,18 @@ async def save_uploaded_file(filename: str, content: bytes) -> dict:
 
 def list_files() -> list[dict]:
     """List all registered files."""
-    return list(_file_registry.values())
+    return db_list_files()
 
 
 def get_file_metadata(file_id: str) -> dict:
     """Retrieve metadata for a registered file, with disk fallback."""
-    if file_id in _file_registry:
-        return _file_registry[file_id]
-    
+    record = db_get_file(file_id)
+    if record:
+        return record
+
     # Try recovery from disk
-    logger.info(f"File ID {file_id} not in registry, attempting disk recovery...")
+    logger.info(f"File ID {file_id} not in SQLite DB, attempting disk recovery...")
     upload_dir = Path(settings.upload_dir)
-    # Search for any file matching the file_id prefix
     matches = list(upload_dir.glob(f"{file_id}*"))
     if matches:
         file_path = matches[0]
@@ -136,18 +116,21 @@ def get_file_metadata(file_id: str) -> dict:
             from app.tools.file_loader import load_dataset, inspect_dataset
             df = load_dataset(file_path)
             metadata = inspect_dataset(df)
-            
-            # Re-register
-            _file_registry[file_id] = {
-                "file_id": file_id,
-                "filename": file_path.name.split('_', 1)[-1] if '_' in file_path.name else file_path.name,
-                "file_path": str(file_path),
-                "file_size": file_path.stat().st_size,
-                **metadata,
-            }
-            _save_registry(_file_registry)
-            logger.info(f"Successfully recovered file {file_id} from disk")
-            return _file_registry[file_id]
+
+            clean_filename = file_path.name.split('_', 1)[-1] if '_' in file_path.name else file_path.name
+
+            # Re-register into SQLite DB
+            db_register_file(
+                file_id=file_id,
+                filename=clean_filename,
+                file_path=str(file_path),
+                file_size=file_path.stat().st_size,
+                metadata=metadata,
+            )
+            logger.info(f"Successfully recovered file {file_id} from disk into SQLite")
+            recovered = db_get_file(file_id)
+            if recovered:
+                return recovered
         except Exception as e:
             logger.error(f"Failed to recover file {file_id} from disk: {e}")
 
